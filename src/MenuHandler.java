@@ -11,7 +11,7 @@ public class MenuHandler {
         this.scanner = new Scanner(System.in);
     }
 
-    // Main loop - runs until user selects 5
+    // Main loop - runs until user selects 6
     public void run() {
         while (true) {
             displayMenu();
@@ -31,6 +31,7 @@ public class MenuHandler {
         System.out.println("4. Display All Patrons");
         System.out.println("5. Exit");
         System.out.println("6. Clear All Patrons");
+        System.out.println("7. Update Patron Fine");
         System.out.println("===========================================");
         System.out.print("Enter your choice: ");
     }
@@ -38,15 +39,16 @@ public class MenuHandler {
     // Reads and validates the menu choice
     private int getMenuChoice() {
         while (true) {
+            String input = scanner.nextLine().trim();
             try {
-                int choice = Integer.parseInt(scanner.nextLine().trim());
-                if (choice >= 1 && choice <= 6) {
+                int choice = Integer.parseInt(input);
+                if (choice >= 1 && choice <= 7) {
                     return choice;
                 } else {
-                    System.out.print("Invalid option. Please enter a number between 1 and 5: ");
+                    System.out.print("Invalid option. Please enter a number between 1 and 7: ");
                 }
             } catch (NumberFormatException e) {
-                System.out.print("Invalid option. Please enter a number between 1 and 5: ");
+                System.out.print("Invalid option. Please enter a number between 1 and 7: ");
             }
         }
     }
@@ -75,14 +77,17 @@ public class MenuHandler {
             case 6:
                 promptClearAllPatrons();
                 break;
+            case 7:
+                promptUpdatePatronFine();
+                break;
             default:
-                System.out.println("Invalid option. Please enter a number between 1 and 5.");
+                System.out.println("Invalid option. Please enter a number between 1 and 7.");
         }
     }
 
     // Option 1 - load from file
     public void promptAddPatronFromFile() {
-        System.out.print("Enter the path to your patron data file (or press enter to cancel): ");
+        System.out.print("Enter the path to your patron data file (or press Enter to cancel): ");
         String path = scanner.nextLine().trim();
         if (path.isEmpty()) {
             System.out.println("No path entered. Returning to menu.");
@@ -95,7 +100,6 @@ public class MenuHandler {
         }
     }
 
-
     // Option 2 - add manually
     public void promptAddPatronManual() {
         System.out.println("Press Enter at any time to cancel and return to the menu.");
@@ -106,7 +110,6 @@ public class MenuHandler {
             System.out.print("Enter 7-digit Patron ID: ");
             String input = scanner.nextLine().trim();
 
-            // Allow user to cancel
             if (input.isEmpty()) {
                 System.out.println("Add patron cancelled. Returning to menu.");
                 return;
@@ -132,7 +135,8 @@ public class MenuHandler {
             System.out.print("Enter Patron Name: ");
             name = scanner.nextLine().trim();
             if (name.isEmpty()) {
-                System.out.println("Name cannot be empty.");
+                System.out.println("Add patron cancelled. Returning to menu.");
+                return;
             } else {
                 break;
             }
@@ -144,7 +148,8 @@ public class MenuHandler {
             System.out.print("Enter Patron Address: ");
             address = scanner.nextLine().trim();
             if (address.isEmpty()) {
-                System.out.println("Address cannot be empty.");
+                System.out.println("Add patron cancelled. Returning to menu.");
+                return;
             } else {
                 break;
             }
@@ -154,8 +159,13 @@ public class MenuHandler {
         double fine = 0.0;
         while (true) {
             System.out.print("Enter Overdue Fine Amount ($0.00 - $250.00): ");
+            String input = scanner.nextLine().trim();
+            if (input.isEmpty()) {
+                System.out.println("Add patron cancelled. Returning to menu.");
+                return;
+            }
             try {
-                fine = Double.parseDouble(scanner.nextLine().trim());
+                fine = Double.parseDouble(input);
                 if (!system.isValidFine(fine)) {
                     System.out.println("Invalid fine. Must be between $0.00 and $250.00.");
                 } else {
@@ -183,7 +193,6 @@ public class MenuHandler {
             System.out.print("Enter the 7-digit Patron ID to remove (or press Enter to cancel): ");
             String input = scanner.nextLine().trim();
 
-            // Allow user to cancel
             if (input.isEmpty()) {
                 System.out.println("Remove cancelled. Returning to menu.");
                 return;
@@ -228,7 +237,7 @@ public class MenuHandler {
 
     // Option 6 - clear all patrons from the system
     public void promptClearAllPatrons() {
-        System.out.print("Are you sure you want to clear all patrons? (yes/no): ");
+        System.out.print("Are you sure you want to clear all " + system.getPatronCount() + " patrons from the system? (yes/no): ");
         String confirm = scanner.nextLine().trim().toLowerCase();
         if (confirm.equals("yes")) {
             system.clearAllPatrons();
@@ -236,5 +245,63 @@ public class MenuHandler {
         } else {
             System.out.println("Clear cancelled.");
         }
+    }
+
+    // Option 7 - update patron fine
+    public void promptUpdatePatronFine() {
+        if (system.getPatronCount() == 0) {
+            System.out.println("No patrons are currently enrolled in the system.");
+            return;
+        }
+        System.out.print("Enter the 7-digit Patron ID (or press Enter to cancel): ");
+        String input = scanner.nextLine().trim();
+
+        if (input.isEmpty()) {
+            System.out.println("Update cancelled. Returning to menu.");
+            return;
+        }
+
+        int patronId;
+        try {
+            patronId = Integer.parseInt(input);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter a numeric 7-digit ID.");
+            return;
+        }
+
+        Patron patron = system.getPatronById(patronId);
+        if (patron == null) {
+            System.out.println("No patron with ID " + patronId + " was found.");
+            return;
+        }
+
+        System.out.println("Current fine for " + patron.getName() + ": $" + String.format("%.2f", patron.getOverdueFine()));
+        System.out.print("Enter new fine amount ($0.00 - $250.00) (or press Enter to cancel): ");
+        String fineInput = scanner.nextLine().trim();
+
+        if (fineInput.isEmpty()) {
+            System.out.println("Update cancelled. Returning to menu.");
+            return;
+        }
+
+        double fine;
+        try {
+            fine = Double.parseDouble(fineInput);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter a numeric fine amount.");
+            return;
+        }
+
+        if (!system.isValidFine(fine)) {
+            System.out.println("Invalid fine. Must be between $0.00 and $250.00.");
+            return;
+        }
+
+        patron.setOverdueFine(fine);
+        System.out.println("Fine updated for " + patron.getName() + " (ID: " + patronId + "). New fine: $" + String.format("%.2f", fine));
+
+        // Display updated list
+        System.out.println("\nUpdated patron list:");
+        system.displayAllPatrons();
     }
 }
