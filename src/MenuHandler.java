@@ -11,7 +11,7 @@ public class MenuHandler {
         this.scanner = new Scanner(System.in);
     }
 
-    // Main loop - runs until user selects 6
+    // Main loop - runs until user selects 5
     public void run() {
         while (true) {
             displayMenu();
