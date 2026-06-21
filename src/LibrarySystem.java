@@ -15,6 +15,12 @@ public class LibrarySystem {
         patrons.add(patron);
     }
 
+    // Clears all patrons from the system
+    public void clearAllPatrons() {
+        patrons.clear();
+        System.out.println("All patrons have been cleared from the system.");
+    }
+
     // Removes a patron by ID - returns true if found and removed, false if not found
     public boolean removePatron(int patronId) {
         for (int i = 0; i < patrons.size(); i++) {

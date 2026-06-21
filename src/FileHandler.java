@@ -5,7 +5,8 @@ import java.io.IOException;
 public class FileHandler {
 
     // Reads the file at filePath and loads valid patrons into the system
-    public static void loadFromFile(String filePath, LibrarySystem system) {
+    // Returns true if file was read successfully, false if file not found
+    public static boolean loadFromFile(String filePath, LibrarySystem system) {
         int added = 0;
         int skipped = 0;
         int lineNumber = 0;
@@ -35,10 +36,11 @@ public class FileHandler {
 
         } catch (IOException e) {
             System.out.println("Error: File not found or could not be read - " + filePath);
-            return;
+            return false;
         }
 
         System.out.println("\nFile load complete. Added: " + added + " | Skipped: " + skipped);
+        return true;
     }
 
     // Parses a single line into a Patron object, returns null if invalid
